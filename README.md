@@ -228,14 +228,6 @@
                 用户名或密码错误，请重试
             </div>
 
-            <div class="login-tip" style="background: #e8f4f8; padding: 12px 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid var(--primary-color);">
-                <p style="margin: 0; font-size: 13px; color: #2c5f8c;">
-                    💡 <strong>登录提示：</strong><br>
-                    
-                    • 或输入任意新用户名和密码自动注册
-                </p>
-            </div>
-            
             <form class="login-form" id="loginForm" onsubmit="return handleLogin(event)">
                 <div class="form-group">
                     <label for="loginUsername">用户名</label>
@@ -252,9 +244,10 @@
                 <button type="submit" class="login-btn">登 录</button>
             </form>
             
-            <div class="login-tips">
+            <div class="login-tips" style="display: none;">
                 <strong>首次使用提示：</strong><br>
-                
+                • 默认用户名：<span style="color: var(--primary-color);">admin</span><br>
+                • 默认密码：<span style="color: var(--primary-color);">123456</span><br>
                 • 登录后可在设置中修改用户名和密码
             </div>
         </div>
@@ -277,6 +270,7 @@
             <div class="nav-item" data-page="food-water">食物水分</div>
             <div class="nav-item" data-page="calendar">透析日历</div>
             <div class="nav-item" data-page="vitals">生命体征</div>
+            <div class="nav-item" data-page="medicine-record">用药记录</div>
         </nav>
 
         <div id="homePage" class="page active">
@@ -289,6 +283,33 @@
                 </div>
 
                 <!-- 核心数据概览 -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                    <!-- 干体重 -->
+                    <div style="background: white; padding: 20px; border-radius: var(--radius-lg); box-shadow: var(--shadow); border-left: 4px solid #9b59b6;">
+                        <div style="font-size: 14px; color: var(--gray-dark); margin-bottom: 10px;">📏 干体重</div>
+                        <div id="homeDryWeight" style="font-size: 28px; font-weight: bold; color: #9b59b6;">未设置</div>
+                    </div>
+                    <!-- 最后体重 -->
+                    <div style="background: white; padding: 20px; border-radius: var(--radius-lg); box-shadow: var(--shadow); border-left: 4px solid var(--primary-color);">
+                        <div style="font-size: 14px; color: var(--gray-dark); margin-bottom: 10px;">⚖️ 最后体重</div>
+                        <div id="homeLastWeight" style="font-size: 28px; font-weight: bold; color: var(--primary-color);">-- kg</div>
+                        <div id="homeLastWeightDate" style="font-size: 12px; color: var(--gray-dark); margin-top: 5px;">暂无记录</div>
+                    </div>
+                    <!-- 体重增长 -->
+                    <div style="background: white; padding: 20px; border-radius: var(--radius-lg); box-shadow: var(--shadow); border-left: 4px solid var(--warning-color);">
+                        <div style="font-size: 14px; color: var(--gray-dark); margin-bottom: 10px;">📈 体重增长</div>
+                        <div id="homeWeightGain" style="font-size: 28px; font-weight: bold; color: var(--warning-color);">-- kg</div>
+                        <div id="homeWeightGainPercent" style="font-size: 12px; color: var(--gray-dark); margin-top: 5px;">相对干体重</div>
+                    </div>
+                    <!-- 最后血压 -->
+                    <div style="background: white; padding: 20px; border-radius: var(--radius-lg); box-shadow: var(--shadow); border-left: 4px solid #e74c3c;">
+                        <div style="font-size: 14px; color: var(--gray-dark); margin-bottom: 10px;">💓 最后血压</div>
+                        <div id="homeLastBP" style="font-size: 28px; font-weight: bold; color: #e74c3c;">--/--</div>
+                        <div id="homeLastBPDate" style="font-size: 12px; color: var(--gray-dark); margin-top: 5px;">暂无记录</div>
+                    </div>
+                </div>
+
+                <!-- 透析倒计时和水分摄入（次要信息） -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px;">
                     <div id="dialysisCountdownCard" style="display: none; background: white; padding: 20px; border-radius: var(--radius-lg); box-shadow: var(--shadow); border-left: 4px solid var(--primary-color);">
                         <div style="font-size: 14px; color: var(--gray-dark); margin-bottom: 10px;">下次透析时间</div>
@@ -307,10 +328,6 @@
                         <div style="font-size: 14px; color: var(--gray-dark); margin-bottom: 10px;">体重最多增长</div>
                         <div id="maxWeightGain" style="font-size: 20px; font-weight: bold; color: var(--warning-color);">-- kg</div>
                         <div id="weightGainFormula" style="font-size: 12px; color: var(--gray-dark); margin-top: 5px;">干体重×5%÷透析间隔天数</div>
-                    </div>
-                    <div style="background: white; padding: 20px; border-radius: var(--radius-lg); box-shadow: var(--shadow); border-left: 4px solid #9b59b6;">
-                        <div style="font-size: 14px; color: var(--gray-dark); margin-bottom: 10px;">干体重</div>
-                        <div id="dryWeightDisplay" style="font-size: 20px; font-weight: bold; color: #9b59b6;">未设置</div>
                     </div>
                 </div>
 
@@ -544,6 +561,7 @@
                         <div class="frequency-tag" data-frequency="晚">晚</div>
                         <div class="frequency-tag" data-frequency="睡前">睡前</div>
                         <div class="frequency-tag" data-frequency="空腹">空腹</div>
+                        <div class="frequency-tag" data-frequency="饭前">饭前</div>
                         <div class="frequency-tag" data-frequency="饭后">饭后</div>
                     </div>
                 </div>
@@ -2226,9 +2244,9 @@
             
             // 更新首页显示
             document.getElementById('welcomeText').textContent = `${user.name}，你好！`;
-            if (user.dryWeight) {
-                document.getElementById('dryWeightDisplay').textContent = `${user.dryWeight} kg`;
-            }
+            
+            // 更新首页核心数据显示
+            updateHomeCoreData();
             
             // 更新今日最大摄入显示
             updateMaxWaterIntakeDisplay();
@@ -3551,6 +3569,7 @@
                 document.getElementById('weightInput').value = '';
                 renderVitalsHistory();
                 renderWeightChart(); // 更新图表
+                updateHomeCoreData(); // 更新首页核心数据
                 alert('体重记录已保存');
             }
 
@@ -3607,6 +3626,7 @@
                 document.getElementById('heartRate').value = '';
                 renderVitalsHistory();
                 renderBloodPressureChart(); // 更新图表
+                updateHomeCoreData(); // 更新首页核心数据
                 alert('血压记录已保存');
             }
 
@@ -4854,10 +4874,8 @@
                     weekday: 'long'
                 });
 
-                // 更新干体重显示
-                if (user.dryWeight) {
-                    document.getElementById('dryWeightDisplay').textContent = `${user.dryWeight} kg`;
-                }
+                // 更新首页核心数据显示
+                updateHomeCoreData();
 
                 // 更新今日水分显示
                 updateTodayWaterDisplay();
@@ -4872,6 +4890,94 @@
                 updateVitalsDisplay();
 
                 console.log('应用初始化完成');
+            }
+            
+            // 更新首页核心数据显示（干体重、最后体重、体重增长、最后血压）
+            function updateHomeCoreData() {
+                const user = getCurrentUser();
+                
+                // 更新干体重
+                const dryWeightEl = document.getElementById('homeDryWeight');
+                if (user.dryWeight) {
+                    dryWeightEl.textContent = `${user.dryWeight} kg`;
+                } else {
+                    dryWeightEl.textContent = '未设置';
+                }
+                
+                // 获取最后一次体重记录
+                const vitalsRecords = user.vitalsRecords || [];
+                const weightRecords = vitalsRecords.filter(r => r.type === 'weight').sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                const lastWeightEl = document.getElementById('homeLastWeight');
+                const lastWeightDateEl = document.getElementById('homeLastWeightDate');
+                const weightGainEl = document.getElementById('homeWeightGain');
+                const weightGainPercentEl = document.getElementById('homeWeightGainPercent');
+                
+                if (weightRecords.length > 0) {
+                    const lastWeight = weightRecords[0];
+                    lastWeightEl.textContent = `${lastWeight.value} kg`;
+                    lastWeightDateEl.textContent = `记录于 ${lastWeight.date}`;
+                    
+                    // 计算体重增长
+                    if (user.dryWeight) {
+                        const gain = (parseFloat(lastWeight.value) - parseFloat(user.dryWeight)).toFixed(1);
+                        const gainPercent = ((gain / parseFloat(user.dryWeight)) * 100).toFixed(1);
+                        
+                        if (parseFloat(gain) > 0) {
+                            weightGainEl.textContent = `+${gain} kg`;
+                            weightGainEl.style.color = 'var(--warning-color)';
+                            weightGainPercentEl.textContent = `较干体重增长 ${gainPercent}%`;
+                            
+                            // 如果增长超过5%，用红色警示
+                            if (parseFloat(gainPercent) > 5) {
+                                weightGainEl.style.color = 'var(--secondary-color)';
+                                weightGainPercentEl.innerHTML = `⚠️ 增长超5%，请注意！`;
+                            }
+                        } else if (parseFloat(gain) < 0) {
+                            weightGainEl.textContent = `${gain} kg`;
+                            weightGainEl.style.color = 'var(--success-color)';
+                            weightGainPercentEl.textContent = `较干体重下降 ${Math.abs(gainPercent)}%`;
+                        } else {
+                            weightGainEl.textContent = `0 kg`;
+                            weightGainEl.style.color = 'var(--primary-color)';
+                            weightGainPercentEl.textContent = `与干体重持平`;
+                        }
+                    } else {
+                        weightGainEl.textContent = '-- kg';
+                        weightGainPercentEl.textContent = '请先设置干体重';
+                    }
+                } else {
+                    lastWeightEl.textContent = '-- kg';
+                    lastWeightDateEl.textContent = '暂无记录';
+                    weightGainEl.textContent = '-- kg';
+                    weightGainPercentEl.textContent = '暂无体重记录';
+                }
+                
+                // 获取最后一次血压记录
+                const bpRecords = vitalsRecords.filter(r => r.type === 'bloodPressure').sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                const lastBPEl = document.getElementById('homeLastBP');
+                const lastBPDateEl = document.getElementById('homeLastBPDate');
+                
+                if (bpRecords.length > 0) {
+                    const lastBP = bpRecords[0];
+                    lastBPEl.textContent = `${lastBP.systolic}/${lastBP.diastolic}`;
+                    lastBPDateEl.textContent = `记录于 ${lastBP.date}`;
+                    
+                    // 血压预警颜色
+                    const sys = parseInt(lastBP.systolic);
+                    const dia = parseInt(lastBP.diastolic);
+                    if (sys >= 140 || dia >= 90) {
+                        lastBPEl.style.color = 'var(--secondary-color)'; // 高血压红色
+                    } else if (sys < 90 || dia < 60) {
+                        lastBPEl.style.color = 'var(--warning-color)'; // 低血压黄色
+                    } else {
+                        lastBPEl.style.color = '#e74c3c'; // 正常显示红色主题
+                    }
+                } else {
+                    lastBPEl.textContent = '--/--';
+                    lastBPDateEl.textContent = '暂无记录';
+                }
             }
             
             // ==================== 登录相关函数 ====================
@@ -4957,6 +5063,15 @@
                     showMainContainer();
                     initNavigation(); // 初始化导航事件
                     initApp();
+                    
+                    // 检查是否首次登录（没有设置干体重等个人信息）
+                    const currentUser = getCurrentUser();
+                    if (!currentUser.dryWeight || !currentUser.name || currentUser.name === '管理员' || currentUser.name === '用户') {
+                        setTimeout(() => {
+                            openProfileModal();
+                            alert('💡 首次使用，请先设置您的个人信息（干体重等）');
+                        }, 500);
+                    }
                 } else if (userFound) {
                     // 密码错误
                     errorDiv.textContent = '密码错误，请重试';
@@ -4984,7 +5099,12 @@
                     showMainContainer();
                     initNavigation(); // 初始化导航事件
                     initApp();
-                    alert(`🎉 欢迎新用户 ${username}！您的账户已创建成功。`);
+                    
+                    // 新用户自动打开个人设置
+                    setTimeout(() => {
+                        openProfileModal();
+                        alert(`🎉 欢迎新用户 ${username}！请先设置您的个人信息`);
+                    }, 500);
                 }
                 
                 return false;
