@@ -231,7 +231,7 @@
             <div class="login-tip" style="background: #e8f4f8; padding: 12px 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid var(--primary-color);">
                 <p style="margin: 0; font-size: 13px; color: #2c5f8c;">
                     💡 <strong>登录提示：</strong><br>
-                    • 默认管理员账号：admin / 123456<br>
+                    
                     • 或输入任意新用户名和密码自动注册
                 </p>
             </div>
@@ -254,8 +254,7 @@
             
             <div class="login-tips">
                 <strong>首次使用提示：</strong><br>
-                • 默认用户名：<span style="color: var(--primary-color);">admin</span><br>
-                • 默认密码：<span style="color: var(--primary-color);">123456</span><br>
+                
                 • 登录后可在设置中修改用户名和密码
             </div>
         </div>
