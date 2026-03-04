@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -179,6 +179,53 @@
         .feeling-tag { padding: 8px 15px; background-color: white; border: 2px solid var(--primary-color); color: var(--primary-color); border-radius: 20px; cursor: pointer; transition: var(--transition); font-size: 13px; }
         .feeling-tag.selected { background-color: var(--primary-color); color: white; }
         .other-feeling { margin-top: 10px; }
+        
+        /* 个人中心弹窗优化 */
+        #profileModal .modal-content {
+            margin: 5vh auto !important;
+            max-width: 850px !important;
+            max-height: 92vh !important;
+            padding: 30px !important;
+            width: 95% !important;
+        }
+        
+        @media (max-width: 768px) {
+            #profileModal .modal-content {
+                margin: 2vh auto !important;
+                max-height: 96vh !important;
+                padding: 20px !important;
+                width: 98% !important;
+            }
+            #profileModal h2 {
+                font-size: 20px !important;
+                margin-bottom: 15px !important;
+            }
+            .profile-tab-btn {
+                font-size: 13px !important;
+                padding: 10px !important;
+            }
+        }
+        
+        .tab-content {
+            min-height: 300px;
+        }
+        
+        .profile-tab-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .profile-tab-btn.active {
+            background: var(--primary-color) !important;
+            color: white !important;
+        }
+        
+        /* 患者总数卡片悬停效果 */
+        #patientCountCard:hover {
+            background: rgba(255,255,255,0.3) !important;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
         .dialysis-record-list { margin-top: 30px; }
         .record-card { background-color: var(--gray-light); border-radius: var(--radius); padding: 20px; margin-bottom: 15px; border-left: 4px solid var(--primary-color); }
         .record-card-header { display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e1e5e9; }
@@ -228,14 +275,21 @@
                 用户名或密码错误，请重试
             </div>
 
+            <!-- 登录提示 -->
+            <div class="login-tip" style="background: #e8f4f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid var(--primary-color);">
+                <p style="margin: 0; font-size: 14px; color: #2c5f8c; font-weight: 500;">
+                    👤 <strong>请输入您的姓名和密码进行登录</strong>
+                </p>
+            </div>
+
             <form class="login-form" id="loginForm" onsubmit="return handleLogin(event)">
                 <div class="form-group">
-                    <label for="loginUsername">用户名</label>
-                    <input type="text" id="loginUsername" placeholder="请输入用户名" required autocomplete="username">
+                    <label for="loginUsername">姓名</label>
+                    <input type="text" id="loginUsername" placeholder="请输入您的姓名" required autocomplete="username">
                 </div>
                 <div class="form-group">
                     <label for="loginPassword">密码</label>
-                    <input type="password" id="loginPassword" placeholder="请输入密码" required autocomplete="current-password">
+                    <input type="password" id="loginPassword" placeholder="请输入您的密码" required autocomplete="current-password">
                 </div>
                 <div class="form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 15px;">
                     <input type="checkbox" id="rememberMe" style="width: 18px; height: 18px; cursor: pointer;">
@@ -243,13 +297,6 @@
                 </div>
                 <button type="submit" class="login-btn">登 录</button>
             </form>
-            
-            <div class="login-tips" style="display: none;">
-                <strong>首次使用提示：</strong><br>
-                • 默认用户名：<span style="color: var(--primary-color);">admin</span><br>
-                • 默认密码：<span style="color: var(--primary-color);">123456</span><br>
-                • 登录后可在设置中修改用户名和密码
-            </div>
         </div>
     </div>
 
@@ -271,6 +318,7 @@
             <div class="nav-item" data-page="calendar">透析日历</div>
             <div class="nav-item" data-page="vitals">生命体征</div>
             <div class="nav-item" data-page="medicine-record">用药记录</div>
+            <div class="nav-item admin-only" data-page="admin-panel" style="display: none;">管理员</div>
         </nav>
 
         <div id="homePage" class="page active">
@@ -832,6 +880,226 @@
             </div>
         </div>
 
+        <!-- 管理员管理页面 -->
+        <div id="admin-panelPage" class="page">
+            <h2>管理员控制台</h2>
+            
+            <!-- 管理员概览 -->
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: var(--radius-lg); margin-bottom: 25px; box-shadow: var(--shadow-lg);">
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                    <span style="font-size: 48px;">👨‍💼</span>
+                    <div>
+                        <div style="font-size: 24px; font-weight: bold;">系统管理员</div>
+                        <div style="font-size: 14px; opacity: 0.9;">管理权限已激活</div>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: var(--radius-sm);">
+                        <div id="adminTotalUsers" style="font-size: 28px; font-weight: bold;">0</div>
+                        <div style="font-size: 12px; opacity: 0.9;">总用户数</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: var(--radius-sm);">
+                        <div id="adminTotalDialysisRecords" style="font-size: 28px; font-weight: bold;">0</div>
+                        <div style="font-size: 12px; opacity: 0.9;">透析记录</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: var(--radius-sm);">
+                        <div id="adminTotalWaterRecords" style="font-size: 28px; font-weight: bold;">0</div>
+                        <div style="font-size: 12px; opacity: 0.9;">水分记录</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: var(--radius-sm);">
+                        <div id="adminTotalMedicineRecords" style="font-size: 28px; font-weight: bold;">0</div>
+                        <div style="font-size: 12px; opacity: 0.9;">用药记录</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 管理员功能选项卡 -->
+            <div style="display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 10px;">
+                <button class="admin-tab-btn active" data-tab="users" style="flex: 0 0 auto; padding: 12px 20px; border: none; background: var(--primary-color); color: white; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 600;">
+                    👥 用户管理
+                </button>
+                <button class="admin-tab-btn" data-tab="stats" style="flex: 0 0 auto; padding: 12px 20px; border: none; background: white; color: var(--text-color); border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 600; border: 1px solid #e1e5e9;">
+                    📊 数据分析
+                </button>
+                <button class="admin-tab-btn" data-tab="settings" style="flex: 0 0 auto; padding: 12px 20px; border: none; background: white; color: var(--text-color); border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 600; border: 1px solid #e1e5e9;">
+                    ⚙️ 系统设置
+                </button>
+                <button class="admin-tab-btn" data-tab="logs" style="flex: 0 0 auto; padding: 12px 20px; border: none; background: white; color: var(--text-color); border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 600; border: 1px solid #e1e5e9;">
+                    📝 操作日志
+                </button>
+            </div>
+
+            <!-- 用户管理选项卡 -->
+            <div id="adminUsersTab" class="admin-tab-content active">
+                <div style="background: white; padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow);">
+                    <!-- 患者信息统计汇总 -->
+                    <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: var(--radius); margin-bottom: 25px;">
+                        <h3 style="font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                            <span>🏥</span> 患者信息统计汇总
+                        </h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                            <div id="patientCountCard" style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition);" onclick="showAllPatients()" title="点击显示所有患者">
+                                <div id="patientCount" style="font-size: 28px; font-weight: bold;">0</div>
+                                <div style="font-size: 12px; opacity: 0.9;">患者总数 👆</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: var(--radius-sm);">
+                                <div id="activePatientCount" style="font-size: 28px; font-weight: bold;">0</div>
+                                <div style="font-size: 12px; opacity: 0.9;">活跃患者</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: var(--radius-sm);">
+                                <div id="avgAge" style="font-size: 28px; font-weight: bold;">--</div>
+                                <div style="font-size: 12px; opacity: 0.9;">平均年龄</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: var(--radius-sm);">
+                                <div id="malePatientCount" style="font-size: 28px; font-weight: bold;">0</div>
+                                <div style="font-size: 12px; opacity: 0.9;">男性患者</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: var(--radius-sm);">
+                                <div id="femalePatientCount" style="font-size: 28px; font-weight: bold;">0</div>
+                                <div style="font-size: 12px; opacity: 0.9;">女性患者</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; opacity: 0.8; margin-top: 10px; text-align: center;">
+                            💡 点击"患者总数"可显示所有患者列表
+                        </div>
+                    </div>
+                    
+                    <!-- 搜索和筛选 -->
+                    <div style="background: var(--gray-light); padding: 20px; border-radius: var(--radius); margin-bottom: 25px;">
+                        <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text-color);">🔍 患者查询</h3>
+                        <div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                            <input type="text" id="userSearchInput" placeholder="🔍 搜索姓名、ID、电话..." style="flex: 1; min-width: 200px; padding: 12px 15px; border: 1px solid #e1e5e9; border-radius: var(--radius-sm);">
+                            <select id="userFilterSelect" style="padding: 12px 15px; border: 1px solid #e1e5e9; border-radius: var(--radius-sm); background: white;">
+                                <option value="all">全部用户</option>
+                                <option value="active">活跃患者（有记录）</option>
+                                <option value="inactive">不活跃患者</option>
+                                <option value="male">男性患者</option>
+                                <option value="female">女性患者</option>
+                            </select>
+                            <button class="btn" onclick="filterUsers()" style="background-color: var(--primary-color);">查询</button>
+                        </div>
+                        <div style="font-size: 12px; color: var(--gray-dark);">
+                            💡 提示：可按姓名、用户ID、电话号码搜索；可按活跃状态、性别筛选
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="font-size: 20px; color: var(--text-color); border-bottom: 2px solid #f0f2f5; padding-bottom: 10px;">👥 患者列表（只读模式）</h3>
+                        <div style="font-size: 13px; color: var(--primary-color); font-weight: 600;">
+                            📋 列出所有注册患者
+                        </div>
+                    </div>
+                    <div id="userList" style="display: grid; gap: 15px; max-height: 600px; overflow-y: auto;">
+                        <!-- 用户列表将通过 JavaScript 动态加载 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据分析选项卡 -->
+            <div id="adminStatsTab" class="admin-tab-content" style="display: none;">
+                <div style="background: white; padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow); margin-bottom: 25px;">
+                    <h3 style="font-size: 20px; margin-bottom: 20px; color: var(--text-color); border-bottom: 2px solid #f0f2f5; padding-bottom: 10px;">📊 系统数据统计</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                        <div style="padding: 20px; background: var(--gray-light); border-radius: var(--radius); border-left: 4px solid var(--primary-color);">
+                            <div style="font-size: 14px; color: var(--gray-dark); margin-bottom: 5px;">所有用户透析总次数</div>
+                            <div id="allUsersDialysisCount" style="font-size: 24px; font-weight: bold; color: var(--primary-color);">0</div>
+                        </div>
+                        <div style="padding: 20px; background: var(--gray-light); border-radius: var(--radius); border-left: 4px solid var(--success-color);">
+                            <div style="font-size: 14px; color: var(--gray-dark); margin-bottom: 5px;">所有用户水分记录总数</div>
+                            <div id="allUsersWaterRecordCount" style="font-size: 24px; font-weight: bold; color: var(--success-color);">0</div>
+                        </div>
+                        <div style="padding: 20px; background: var(--gray-light); border-radius: var(--radius); border-left: 4px solid #9b59b6;">
+                            <div style="font-size: 14px; color: var(--gray-dark); margin-bottom: 5px;">所有用户用药记录总数</div>
+                            <div id="allUsersMedicineRecordCount" style="font-size: 24px; font-weight: bold; color: #9b59b6;">0</div>
+                        </div>
+                        <div style="padding: 20px; background: var(--gray-light); border-radius: var(--radius); border-left: 4px solid #e74c3c;">
+                            <div style="font-size: 14px; color: var(--gray-dark); margin-bottom: 5px;">所有用户血压记录总数</div>
+                            <div id="allUsersBPRecordCount" style="font-size: 24px; font-weight: bold; color: #e74c3c;">0</div>
+                        </div>
+                        <div style="padding: 20px; background: var(--gray-light); border-radius: var(--radius); border-left: 4px solid #f39c12;">
+                            <div style="font-size: 14px; color: var(--gray-dark); margin-bottom: 5px;">所有用户总下载次数</div>
+                            <div id="allUsersDownloadCount" style="font-size: 24px; font-weight: bold; color: #f39c12;">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 用户活跃度统计 -->
+                <div style="background: white; padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow); margin-bottom: 25px;">
+                    <h3 style="font-size: 20px; margin-bottom: 20px; color: var(--text-color); border-bottom: 2px solid #f0f2f5; padding-bottom: 10px;">📈 用户活跃度统计</h3>
+                    <div style="position: relative; height: 400px;">
+                        <canvas id="userActivityChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 数据管理 -->
+                <div style="background: white; padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow);">
+                    <h3 style="font-size: 20px; margin-bottom: 20px; color: var(--text-color); border-bottom: 2px solid #f0f2f5; padding-bottom: 10px;">💾 数据管理</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <button class="btn" onclick="exportAllUsersData()" style="background-color: var(--primary-color);">📤 导出所有用户数据</button>
+                        <button class="btn" onclick="exportUserStatistics()" style="background-color: var(--info-color);">📊 导出统计数据</button>
+                        <button class="btn" onclick="clearAllUsersData()" style="background-color: var(--secondary-color);">🗑️ 清空所有用户数据</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系统设置选项卡 -->
+            <div id="adminSettingsTab" class="admin-tab-content" style="display: none;">
+                <div style="background: white; padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow); margin-bottom: 25px;">
+                    <h3 style="font-size: 20px; margin-bottom: 20px; color: var(--text-color); border-bottom: 2px solid #f0f2f5; padding-bottom: 10px;">🔐 管理员密码修改</h3>
+                    <div style="max-width: 500px;">
+                        <div class="form-group">
+                            <label>当前密码</label>
+                            <input type="password" id="currentAdminPassword" placeholder="请输入当前密码">
+                        </div>
+                        <div class="form-group">
+                            <label>新密码</label>
+                            <input type="password" id="newAdminPassword" placeholder="请输入新密码（至少6位）">
+                        </div>
+                        <div class="form-group">
+                            <label>确认新密码</label>
+                            <input type="password" id="confirmAdminPassword" placeholder="请再次输入新密码">
+                        </div>
+                        <button class="btn" onclick="changeAdminPassword()" style="background-color: var(--primary-color);">修改密码</button>
+                    </div>
+                </div>
+
+                <div style="background: white; padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow);">
+                    <h3 style="font-size: 20px; margin-bottom: 20px; color: var(--text-color); border-bottom: 2px solid #f0f2f5; padding-bottom: 10px;">ℹ️ 系统信息</h3>
+                    <div style="display: grid; gap: 15px;">
+                        <div style="display: flex; justify-content: space-between; padding: 15px; background: var(--gray-light); border-radius: var(--radius-sm);">
+                            <span style="color: var(--gray-dark);">系统版本</span>
+                            <span style="font-weight: 500; color: var(--text-color);">v1.0.0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 15px; background: var(--gray-light); border-radius: var(--radius-sm);">
+                            <span style="color: var(--gray-dark);">当前管理员</span>
+                            <span id="currentAdminName" style="font-weight: 500; color: var(--text-color);">--</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 15px; background: var(--gray-light); border-radius: var(--radius-sm);">
+                            <span style="color: var(--gray-dark);">系统运行时间</span>
+                            <span id="systemRunTime" style="font-weight: 500; color: var(--text-color);">--</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 15px; background: var(--gray-light); border-radius: var(--radius-sm);">
+                            <span style="color: var(--gray-dark);">数据存储大小</span>
+                            <span id="dataStorageSize" style="font-weight: 500; color: var(--text-color);">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作日志选项卡 -->
+            <div id="adminLogsTab" class="admin-tab-content" style="display: none;">
+                <div style="background: white; padding: 25px; border-radius: var(--radius-lg); box-shadow: var(--shadow);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px;">
+                        <h3 style="font-size: 20px; color: var(--text-color);">📝 操作日志</h3>
+                        <button class="btn" onclick="clearOperationLogs()" style="background-color: var(--secondary-color); padding: 8px 16px; font-size: 13px;">清空日志</button>
+                    </div>
+                    <div id="operationLogsList" style="max-height: 600px; overflow-y: auto;">
+                        <!-- 日志列表将通过 JavaScript 动态加载 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- 透析时间设置弹窗 -->
@@ -855,19 +1123,19 @@
 
     <!-- 个人中心弹窗 -->
     <div id="profileModal" class="modal">
-        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
-            <span class="close" id="closeProfileModal">&times;</span>
-            <h2 style="margin-bottom: 20px;">个人中心</h2>
+        <div class="modal-content" style="max-width: 850px; max-height: 92vh; overflow-y: auto; padding: 30px;">
+            <span class="close" id="closeProfileModal" style="right: 20px; top: 15px;">&times;</span>
+            <h2 style="margin-bottom: 25px; padding-right: 30px; color: var(--primary-color);">个人中心</h2>
 
             <!-- 选项卡导航 -->
-            <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px;">
-                <button class="profile-tab-btn active" data-tab="profile" style="flex: 1; padding: 12px; border: none; background: var(--primary-color); color: white; border-radius: var(--radius-sm); cursor: pointer; font-size: 15px; font-weight: 600;">
+            <div style="display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #f0f2f5; padding-bottom: 15px; flex-wrap: wrap;">
+                <button class="profile-tab-btn active" data-tab="profile" style="flex: 1; min-width: 120px; padding: 12px 15px; border: none; background: var(--primary-color); color: white; border-radius: var(--radius-sm); cursor: pointer; font-size: 15px; font-weight: 600;">
                     👤 个人信息
                 </button>
-                <button class="profile-tab-btn" data-tab="vitals" style="flex: 1; padding: 12px; border: none; background: white; color: var(--text-color); border-radius: var(--radius-sm); cursor: pointer; font-size: 15px; font-weight: 600; border: 1px solid #e1e5e9;">
+                <button class="profile-tab-btn" data-tab="vitals" style="flex: 1; min-width: 120px; padding: 12px 15px; border: none; background: white; color: var(--text-color); border-radius: var(--radius-sm); cursor: pointer; font-size: 15px; font-weight: 600; border: 1px solid #e1e5e9;">
                     💓 生命体征
                 </button>
-                <button class="profile-tab-btn" data-tab="stats" style="flex: 1; padding: 12px; border: none; background: white; color: var(--text-color); border-radius: var(--radius-sm); cursor: pointer; font-size: 15px; font-weight: 600; border: 1px solid #e1e5e9;">
+                <button class="profile-tab-btn" data-tab="stats" style="flex: 1; min-width: 120px; padding: 12px 15px; border: none; background: white; color: var(--text-color); border-radius: var(--radius-sm); cursor: pointer; font-size: 15px; font-weight: 600; border: 1px solid #e1e5e9;">
                     📊 数据统计
                 </button>
             </div>
@@ -877,11 +1145,11 @@
                 <form id="profileForm">
                     <div class="form-group">
                         <label>姓名</label>
-                        <input type="text" id="profileName">
+                        <input type="text" id="profileName" placeholder="请输入您的姓名">
                     </div>
                     <div class="form-group">
                         <label>年龄</label>
-                        <input type="number" id="profileAge">
+                        <input type="number" id="profileAge" placeholder="请输入您的年龄">
                     </div>
                     <div class="form-group">
                         <label>性别</label>
@@ -892,15 +1160,15 @@
                     </div>
                     <div class="form-group">
                         <label>电话</label>
-                        <input type="tel" id="profilePhone">
+                        <input type="tel" id="profilePhone" placeholder="请输入您的电话">
                     </div>
                     <div class="form-group">
                         <label>干体重 (kg)</label>
-                        <input type="number" id="profileDryWeight" step="0.1">
+                        <input type="number" id="profileDryWeight" step="0.1" placeholder="请输入您的干体重">
                     </div>
                     <div class="form-group">
                         <label>尿量 (ml/天)</label>
-                        <input type="number" id="profileUrineVolume">
+                        <input type="number" id="profileUrineVolume" placeholder="请输入您的尿量">
                     </div>
                     <div class="form-group">
                         <label>床位号</label>
@@ -910,74 +1178,80 @@
                         <label>密码</label>
                         <input type="password" id="profilePassword" placeholder="留空表示不修改密码">
                     </div>
-                    <button type="button" class="btn" id="saveProfileBtn" onclick="saveProfileInfo()">保存信息</button>
+                    <button type="button" class="btn" id="saveProfileBtn" onclick="saveProfileInfo()" style="margin-top: 10px;">保存信息</button>
                 </form>
             </div>
 
             <!-- 生命体征选项卡内容 -->
             <div id="vitalsTab" class="tab-content" style="display: none;">
-                <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-                    <button class="btn" style="flex: 1; background-color: #e74c3c;" onclick="openVitalsModal('bloodPressure')">
+                <div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
+                    <button class="btn" style="flex: 1; min-width: 150px; background-color: #e74c3c;" onclick="openVitalsModal('bloodPressure')">
                         💓 记录血压
                     </button>
-                    <button class="btn" style="flex: 1; background-color: #e67e22;" onclick="openVitalsModal('bloodSugar')">
+                    <button class="btn" style="flex: 1; min-width: 150px; background-color: #e67e22;" onclick="openVitalsModal('bloodSugar')">
                         🩸 记录血糖
                     </button>
                 </div>
 
                 <!-- 最新记录显示 -->
-                <div style="background: var(--gray-light); padding: 15px; border-radius: var(--radius); margin-bottom: 20px;">
-                    <h3 style="font-size: 16px; margin-bottom: 10px; color: var(--text-color);">最新记录</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                        <div style="background: white; padding: 15px; border-radius: var(--radius-sm); border-left: 4px solid #e74c3c;">
-                            <div style="font-size: 12px; color: var(--gray-dark); margin-bottom: 5px;">血压</div>
-                            <div id="latestBPDisplay" style="font-size: 20px; font-weight: bold; color: var(--text-color);">--</div>
+                <div style="background: var(--gray-light); padding: 20px; border-radius: var(--radius); margin-bottom: 25px;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text-color);">📈 最新记录</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
+                        <div style="background: white; padding: 20px; border-radius: var(--radius-sm); border-left: 4px solid #e74c3c;">
+                            <div style="font-size: 13px; color: var(--gray-dark); margin-bottom: 8px;">血压</div>
+                            <div id="latestBPDisplay" style="font-size: 22px; font-weight: bold; color: var(--text-color);">--</div>
                         </div>
-                        <div style="background: white; padding: 15px; border-radius: var(--radius-sm); border-left: 4px solid #e67e22;">
-                            <div style="font-size: 12px; color: var(--gray-dark); margin-bottom: 5px;">血糖</div>
-                            <div id="latestSugarDisplay" style="font-size: 20px; font-weight: bold; color: var(--text-color);">--</div>
+                        <div style="background: white; padding: 20px; border-radius: var(--radius-sm); border-left: 4px solid #e67e22;">
+                            <div style="font-size: 13px; color: var(--gray-dark); margin-bottom: 8px;">血糖</div>
+                            <div id="latestSugarDisplay" style="font-size: 22px; font-weight: bold; color: var(--text-color);">--</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- 历史记录 -->
-                <div style="background: white; padding: 15px; border-radius: var(--radius); border: 1px solid #f0f2f5;">
-                    <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text-color);">历史记录</h3>
-                    <div id="vitalsRecordList" style="max-height: 400px; overflow-y: auto;"></div>
+                <div style="background: white; padding: 20px; border-radius: var(--radius); border: 1px solid #f0f2f5;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px; color: var(--text-color);">📋 历史记录</h3>
+                    <div id="vitalsRecordList" style="max-height: 450px; overflow-y: auto;"></div>
                 </div>
+                
+                <button type="button" class="btn" onclick="closeProfileModal()" style="margin-top: 20px; width: 100%;">确定</button>
             </div>
 
             <!-- 数据统计选项卡内容 -->
             <div id="statsTab" class="tab-content" style="display: none;">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%); color: white; border-radius: var(--radius); box-shadow: var(--shadow);">
-                        <div id="statDialysisCount" style="font-size: 32px; font-weight: bold;">0</div>
-                        <div style="font-size: 14px; margin-top: 5px;">透析次数</div>
+                    <div style="text-align: center; padding: 25px 20px; background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%); color: white; border-radius: var(--radius); box-shadow: var(--shadow);">
+                        <div id="statDialysisCount" style="font-size: 36px; font-weight: bold;">0</div>
+                        <div style="font-size: 15px; margin-top: 8px;">透析次数</div>
                     </div>
-                    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: white; border-radius: var(--radius); box-shadow: var(--shadow);">
-                        <div id="statDialysisRecordCount" style="font-size: 32px; font-weight: bold;">0</div>
-                        <div style="font-size: 14px; margin-top: 5px;">透析记录</div>
+                    <div style="text-align: center; padding: 25px 20px; background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); color: white; border-radius: var(--radius); box-shadow: var(--shadow);">
+                        <div id="statDialysisRecordCount" style="font-size: 36px; font-weight: bold;">0</div>
+                        <div style="font-size: 15px; margin-top: 8px;">透析记录</div>
                     </div>
-                    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; border-radius: var(--radius); box-shadow: var(--shadow);">
-                        <div id="statWaterRecordCount" style="font-size: 32px; font-weight: bold;">0</div>
-                        <div style="font-size: 14px; margin-top: 5px;">水分记录</div>
+                    <div style="text-align: center; padding: 25px 20px; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; border-radius: var(--radius); box-shadow: var(--shadow);">
+                        <div id="statWaterRecordCount" style="font-size: 36px; font-weight: bold;">0</div>
+                        <div style="font-size: 15px; margin-top: 8px;">水分记录</div>
                     </div>
-                    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; border-radius: var(--radius); box-shadow: var(--shadow);">
-                        <div id="statMedicineRecordCount" style="font-size: 32px; font-weight: bold;">0</div>
-                        <div style="font-size: 14px; margin-top: 5px;">用药记录</div>
+                    <div style="text-align: center; padding: 25px 20px; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; border-radius: var(--radius); box-shadow: var(--shadow);">
+                        <div id="statMedicineRecordCount" style="font-size: 36px; font-weight: bold;">0</div>
+                        <div style="font-size: 15px; margin-top: 8px;">用药记录</div>
                     </div>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border-radius: var(--radius); box-shadow: var(--shadow);">
-                        <div id="statBPCount" style="font-size: 32px; font-weight: bold;">0</div>
-                        <div style="font-size: 14px; margin-top: 5px;">血压记录</div>
+                    <div style="text-align: center; padding: 25px 20px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border-radius: var(--radius); box-shadow: var(--shadow);">
+                        <div id="statBPCount" style="font-size: 36px; font-weight: bold;">0</div>
+                        <div style="font-size: 15px; margin-top: 8px;">血压记录</div>
                     </div>
-                    <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); color: white; border-radius: var(--radius); box-shadow: var(--shadow);">
-                        <div id="statSugarCount" style="font-size: 32px; font-weight: bold;">0</div>
-                        <div style="font-size: 14px; margin-top: 5px;">血糖记录</div>
+                    <div style="text-align: center; padding: 25px 20px; background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); color: white; border-radius: var(--radius); box-shadow: var(--shadow);">
+                        <div id="statSugarCount" style="font-size: 36px; font-weight: bold;">0</div>
+                        <div style="font-size: 15px; margin-top: 8px;">血糖记录</div>
                     </div>
                 </div>
+                
+                <button type="button" class="btn" onclick="closeProfileModal()" style="margin-top: 20px; width: 100%;">确定</button>
             </div>
+        </div>
+    </div>
         </div>
     </div>
 
@@ -1063,6 +1337,8 @@
     <script>
         let appData = {
             currentUsername: 'default_user',
+            isAdmin: false, // 管理员身份标记
+            operationLogs: [], // 操作日志
             users: {
                 'default_user': {
                     name: '用户',
@@ -1073,7 +1349,10 @@
                     waterRecords: [],
                     dialysisRecords: [],
                     medicineRecords: [], // 新增用药记录数组
-                    vitalsRecords: [] // 新增生命体征记录数组
+                    vitalsRecords: [], // 新增生命体征记录数组
+                    isAdmin: false, // 用户管理员权限
+                    downloadCount: 0, // 下载次数
+                    lastDownloadTime: null // 最后下载时间
                 }
             }
         };
@@ -1439,7 +1718,8 @@
                                 dialysisTimes: {},
                                 waterRecords: [],
                                 dialysisRecords: [],
-                                medicineRecords: []
+                                medicineRecords: [],
+                                isAdmin: false
                             };
                         }
                         // 确保所有必要字段都存在
@@ -1449,6 +1729,12 @@
                         user.waterRecords = user.waterRecords || [];
                         user.dialysisRecords = user.dialysisRecords || [];
                         user.medicineRecords = user.medicineRecords || []; // 初始化用药记录
+                        user.vitalsRecords = user.vitalsRecords || []; // 初始化生命体征记录
+                        user.isAdmin = user.isAdmin || false; // 确保isAdmin字段存在
+                        user.downloadCount = user.downloadCount || 0; // 确保downloadCount字段存在
+                        user.lastDownloadTime = user.lastDownloadTime || null; // 确保lastDownloadTime字段存在
+                        appData.isAdmin = user.isAdmin || false; // 恢复管理员身份标记
+                        appData.operationLogs = appData.operationLogs || []; // 初始化操作日志
                         console.log('数据已成功加载');
                     } else {
                         throw new Error('数据格式无效');
@@ -1463,6 +1749,8 @@
                 // 使用默认数据
                 appData = {
                     currentUsername: 'default_user',
+                    isAdmin: false,
+                    operationLogs: [], // 初始化操作日志
                     users: {
                         'default_user': {
                             name: '用户',
@@ -1472,7 +1760,8 @@
                             dialysisTimes: {},
                             waterRecords: [],
                             dialysisRecords: [],
-                            medicineRecords: []
+                            medicineRecords: [],
+                            isAdmin: false
                         }
                     }
                 };
@@ -1504,6 +1793,14 @@
                 
                 // 释放URL对象
                 URL.revokeObjectURL(url);
+                
+                // 记录下载次数和下载时间
+                const currentUser = getCurrentUser();
+                if (currentUser) {
+                    currentUser.downloadCount = (currentUser.downloadCount || 0) + 1;
+                    currentUser.lastDownloadTime = new Date().toISOString();
+                    saveDataToLocalStorage();
+                }
                 
                 alert('✅ 数据备份成功！文件已下载到您的设备中。');
             } catch (e) {
@@ -2610,6 +2907,8 @@
                 initProfilePage(); // 初始化个人中心页面
             } else if (pageId === 'vitals') {
                 initVitalsPage(); // 初始化生命体征页面
+            } else if (pageId === 'admin-panel') {
+                loadAdminPanelData(); // 初始化管理员面板
             }
         }
 
@@ -4856,10 +5155,871 @@
                     });
                 });
             }
+
+            // 检查管理员权限并显示/隐藏管理员选项卡
+            function checkAdminPermission() {
+                const adminTab = document.querySelector('.admin-only');
+                if (adminTab) {
+                    if (appData.isAdmin) {
+                        adminTab.style.display = 'block';
+                        console.log('管理员权限已激活');
+                    } else {
+                        adminTab.style.display = 'none';
+                    }
+                }
+            }
+
+            // 加载管理员页面数据
+            function loadAdminPanelData() {
+                if (!appData.isAdmin) {
+                    alert('❌ 您没有管理员权限！');
+                    return;
+                }
+
+                // 确保所有用户数据兼容新字段
+                Object.keys(appData.users).forEach(userId => {
+                    const user = appData.users[userId];
+                    // 确保新字段存在
+                    user.downloadCount = user.downloadCount || 0;
+                    user.lastDownloadTime = user.lastDownloadTime || null;
+                });
+
+                // 初始化管理员选项卡
+                initAdminTabs();
+
+                // 添加搜索框回车事件
+                const searchInput = document.getElementById('userSearchInput');
+                if (searchInput) {
+                    searchInput.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            filterUsers();
+                        }
+                    });
+                }
+
+                // 统计总用户数
+                const userCount = Object.keys(appData.users).length;
+                document.getElementById('adminTotalUsers').textContent = userCount;
+
+                // 统计患者信息（排除管理员）
+                let patientCount = 0;
+                let activePatientCount = 0;
+                let maleCount = 0;
+                let femaleCount = 0;
+                let totalAge = 0;
+                let ageCount = 0;
+
+                Object.values(appData.users).forEach(user => {
+                    // 排除管理员，只统计患者
+                    if (!user.isAdmin) {
+                        patientCount++;
+                        
+                        // 统计活跃患者（有记录）
+                        const totalRecords = (user.dialysisRecords || []).length + 
+                                           (user.waterRecords || []).length + 
+                                           (user.medicineRecords || []).length +
+                                           (user.vitalsRecords || []).length;
+                        if (totalRecords > 0) {
+                            activePatientCount++;
+                        }
+                        
+                        // 统计性别
+                        if (user.gender === '男') {
+                            maleCount++;
+                        } else if (user.gender === '女') {
+                            femaleCount++;
+                        }
+                        
+                        // 统计年龄
+                        if (user.age && !isNaN(parseInt(user.age))) {
+                            totalAge += parseInt(user.age);
+                            ageCount++;
+                        }
+                    }
+                });
+
+                // 计算平均年龄
+                const avgAge = ageCount > 0 ? (totalAge / ageCount).toFixed(1) : '--';
+
+                // 更新患者统计显示
+                document.getElementById('patientCount').textContent = patientCount;
+                document.getElementById('activePatientCount').textContent = activePatientCount;
+                document.getElementById('avgAge').textContent = avgAge + (avgAge !== '--' ? '岁' : '');
+                document.getElementById('malePatientCount').textContent = maleCount;
+                document.getElementById('femalePatientCount').textContent = femaleCount;
+
+                // 统计总记录数
+                let totalDialysisRecords = 0;
+                let totalWaterRecords = 0;
+                let totalMedicineRecords = 0;
+                let totalBPRecords = 0;
+                let totalDownloadCount = 0;
+
+                Object.values(appData.users).forEach(user => {
+                    totalDialysisRecords += (user.dialysisRecords || []).length;
+                    totalWaterRecords += (user.waterRecords || []).length;
+                    totalMedicineRecords += (user.medicineRecords || []).length;
+                    const vitalsRecords = user.vitalsRecords || [];
+                    totalBPRecords += vitalsRecords.filter(r => r.type === 'bloodPressure').length;
+                    totalDownloadCount += (user.downloadCount || 0);
+                });
+
+                document.getElementById('adminTotalDialysisRecords').textContent = totalDialysisRecords;
+                document.getElementById('adminTotalWaterRecords').textContent = totalWaterRecords;
+                document.getElementById('adminTotalMedicineRecords').textContent = totalMedicineRecords;
+                document.getElementById('adminTotalBPRecordCount').textContent = totalBPRecords;
+                document.getElementById('allUsersDialysisCount').textContent = totalDialysisRecords;
+                document.getElementById('allUsersWaterRecordCount').textContent = totalWaterRecords;
+                document.getElementById('allUsersMedicineRecordCount').textContent = totalMedicineRecords;
+                document.getElementById('allUsersDownloadCount').textContent = totalDownloadCount;
+
+                // 加载用户列表
+                loadUserList();
+
+                // 加载操作日志
+                loadOperationLogs();
+
+                // 加载系统信息
+                loadSystemInfo();
+
+                // 加载用户活跃度图表
+                loadUserActivityChart();
+            }
+
+            // 初始化管理员选项卡
+            function initAdminTabs() {
+                document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const tabId = this.dataset.tab;
+                        
+                        // 移除所有选项卡的激活状态
+                        document.querySelectorAll('.admin-tab-btn').forEach(b => {
+                            b.style.background = 'white';
+                            b.style.color = 'var(--text-color)';
+                            b.classList.remove('active');
+                        });
+                        
+                        // 激活当前选项卡
+                        this.style.background = 'var(--primary-color)';
+                        this.style.color = 'white';
+                        this.classList.add('active');
+                        
+                        // 隐藏所有选项卡内容
+                        document.querySelectorAll('.admin-tab-content').forEach(content => {
+                            content.style.display = 'none';
+                        });
+                        
+                        // 显示当前选项卡内容
+                        const tabContent = document.getElementById('admin' + tabId.charAt(0).toUpperCase() + tabId.slice(1) + 'Tab');
+                        if (tabContent) {
+                            tabContent.style.display = 'block';
+                        }
+
+                        // 根据选项卡加载相应数据
+                        if (tabId === 'stats') {
+                            loadUserActivityChart();
+                        }
+                    });
+                });
+            }
+
+            // 加载用户列表（支持搜索和筛选）
+            function loadUserList(searchTerm = '', filterType = 'all') {
+                const userListContainer = document.getElementById('userList');
+                if (!userListContainer) {
+                    console.error('userList container not found');
+                    return;
+                }
+                
+                userListContainer.innerHTML = '';
+
+                // 确保所有用户数据兼容新字段
+                Object.keys(appData.users).forEach(userId => {
+                    const user = appData.users[userId];
+                    user.downloadCount = user.downloadCount || 0;
+                    user.lastDownloadTime = user.lastDownloadTime || null;
+                });
+
+                let filteredUsers = Object.keys(appData.users);
+                
+                // 调试信息
+                console.log('Total users:', filteredUsers.length);
+                console.log('Filter type:', filterType);
+
+                // 应用搜索筛选（支持姓名、ID、电话）
+                if (searchTerm) {
+                    filteredUsers = filteredUsers.filter(userId => {
+                        const user = appData.users[userId];
+                        return user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                               userId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                               (user.phone && user.phone.includes(searchTerm));
+                    });
+                }
+
+                // 应用类型筛选
+                if (filterType !== 'all') {
+                    filteredUsers = filteredUsers.filter(userId => {
+                        const user = appData.users[userId];
+                        const totalRecords = (user.dialysisRecords || []).length + 
+                                           (user.waterRecords || []).length + 
+                                           (user.medicineRecords || []).length +
+                                           (user.vitalsRecords || []).length;
+                        
+                        if (filterType === 'active') {
+                            return totalRecords > 0 && !user.isAdmin;
+                        } else if (filterType === 'inactive') {
+                            return totalRecords === 0 && !user.isAdmin;
+                        } else if (filterType === 'male') {
+                            return user.gender === '男' && !user.isAdmin;
+                        } else if (filterType === 'female') {
+                            return user.gender === '女' && !user.isAdmin;
+                        }
+                        return true;
+                    });
+                }
+
+                // 默认不显示管理员
+                if (filterType === 'all') {
+                    filteredUsers = filteredUsers.filter(userId => {
+                        return !appData.users[userId].isAdmin;
+                    });
+                }
+                
+                console.log('Filtered users (after removing admin):', filteredUsers.length);
+
+                if (filteredUsers.length === 0) {
+                    userListContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--gray-dark);">没有找到符合条件的患者</div>';
+                    return;
+                }
+
+                // 显示患者数量提示
+                const countInfo = document.createElement('div');
+                countInfo.style.cssText = 'background: var(--primary-color); color: white; padding: 10px 15px; border-radius: var(--radius-sm); margin-bottom: 15px; font-size: 14px; font-weight: 600;';
+                countInfo.textContent = `📊 共找到 ${filteredUsers.length} 位患者`;
+                userListContainer.appendChild(countInfo);
+
+                filteredUsers.forEach(userId => {
+                    const user = appData.users[userId];
+                    
+                    // 确保下载相关字段存在
+                    user.downloadCount = user.downloadCount || 0;
+                    user.lastDownloadTime = user.lastDownloadTime || null;
+                    
+                    const isCurrentUser = userId === appData.currentUsername;
+                    const isAdminUser = user.isAdmin || false;
+
+                    const userCard = document.createElement('div');
+                    userCard.style.cssText = `
+                        background: white;
+                        padding: 20px;
+                        border-radius: var(--radius);
+                        border: 1px solid #f0f2f5;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        ${isCurrentUser ? 'border-left: 4px solid var(--primary-color);' : ''}
+                        ${isAdminUser ? 'border-left: 4px solid #9b59b6;' : ''}
+                    `;
+
+                    const userInfo = document.createElement('div');
+                    userInfo.style.cssText = 'flex: 1;';
+
+                    const userName = document.createElement('div');
+                    userName.style.cssText = 'font-size: 18px; font-weight: bold; color: var(--text-color); margin-bottom: 5px;';
+                    userName.innerHTML = `${user.name} ${isCurrentUser ? '<span style="font-size: 12px; background: var(--primary-color); color: white; padding: 2px 8px; border-radius: 10px; margin-left: 10px;">当前</span>' : ''} ${isAdminUser ? '<span style="font-size: 12px; background: #9b59b6; color: white; padding: 2px 8px; border-radius: 10px; margin-left: 10px;">管理员</span>' : ''}`;
+
+                    const userDetails = document.createElement('div');
+                    userDetails.style.cssText = 'font-size: 13px; color: var(--gray-dark);';
+                    userDetails.innerHTML = `
+                        用户ID: ${userId}<br>
+                        注册时间: ${user.registerTime}<br>
+                        透析记录: ${(user.dialysisRecords || []).length} 条<br>
+                        水分记录: ${(user.waterRecords || []).length} 条<br>
+                        用药记录: ${(user.medicineRecords || []).length} 条<br>
+                        下载次数: ${user.downloadCount || 0} 次<br>
+                        最后下载: ${user.lastDownloadTime ? new Date(user.lastDownloadTime).toLocaleString('zh-CN') : '未下载'}
+                    `;
+
+                    userInfo.appendChild(userName);
+                    userInfo.appendChild(userDetails);
+
+                    const userActions = document.createElement('div');
+                    userActions.style.cssText = 'display: flex; gap: 10px;';
+
+                    // 查看用户数据按钮
+                    const viewBtn = document.createElement('button');
+                    viewBtn.textContent = '📊 查看';
+                    viewBtn.style.cssText = 'padding: 8px 15px; background: var(--info-color); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px;';
+                    viewBtn.onclick = () => viewUserData(userId);
+
+                    // 删除用户按钮（不能删除当前用户和管理员）
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = '🗑️ 删除';
+                    deleteBtn.style.cssText = 'padding: 8px 15px; background: var(--secondary-color); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px;';
+                    deleteBtn.disabled = isCurrentUser || isAdminUser;
+                    if (isCurrentUser || isAdminUser) {
+                        deleteBtn.style.opacity = '0.5';
+                        deleteBtn.style.cursor = 'not-allowed';
+                    }
+                    deleteBtn.onclick = () => deleteUser(userId, user.name);
+
+                    userActions.appendChild(viewBtn);
+                    userActions.appendChild(deleteBtn);
+
+                    userCard.appendChild(userInfo);
+                    userCard.appendChild(userActions);
+
+                    userListContainer.appendChild(userCard);
+                });
+            }
+
+            // 显示所有患者
+            function showAllPatients() {
+                // 重置筛选条件
+                const searchInput = document.getElementById('userSearchInput');
+                const filterSelect = document.getElementById('userFilterSelect');
+                
+                if (searchInput) {
+                    searchInput.value = '';
+                }
+                if (filterSelect) {
+                    filterSelect.value = 'all';
+                }
+                
+                // 显示所有患者
+                loadUserList('', 'all');
+                
+                // 滚动到患者列表
+                const userListContainer = document.getElementById('userList');
+                if (userListContainer) {
+                    userListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+
+            // 筛选用户
+            function filterUsers() {
+                const searchTerm = document.getElementById('userSearchInput').value.trim();
+                const filterType = document.getElementById('userFilterSelect').value;
+                loadUserList(searchTerm, filterType);
+            }
+
+            // 查看用户数据
+            function viewUserData(userId) {
+                if (!appData.isAdmin) {
+                    alert('❌ 您没有管理员权限！');
+                    return;
+                }
+
+                const user = appData.users[userId];
+                
+                // 确保字段存在
+                user.downloadCount = user.downloadCount || 0;
+                user.lastDownloadTime = user.lastDownloadTime || null;
+                
+                // 创建弹窗显示用户资料
+                const modal = document.createElement('div');
+                modal.style.cssText = 'display: block; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);';
+                
+                const modalContent = document.createElement('div');
+                modalContent.style.cssText = 'background-color: white; margin: 5% auto; padding: 30px; border-radius: var(--radius-lg); width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto;';
+                
+                const closeBtn = document.createElement('span');
+                closeBtn.innerHTML = '&times;';
+                closeBtn.style.cssText = 'color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; position: sticky; top: 10px;';
+                closeBtn.onclick = () => document.body.removeChild(modal);
+                
+                // 标题
+                const title = document.createElement('h2');
+                title.textContent = `👤 用户资料 - ${user.name}`;
+                title.style.cssText = 'margin-bottom: 25px; color: var(--primary-color); font-size: 24px; padding-bottom: 15px; border-bottom: 2px solid #f0f2f5;';
+                
+                // 资料内容
+                const infoDiv = document.createElement('div');
+                infoDiv.innerHTML = `
+                    <div style="margin-bottom: 25px;">
+                        <h3 style="font-size: 18px; color: var(--text-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                            <span>📋</span> 基本信息
+                        </h3>
+                        <div style="background: var(--gray-light); padding: 20px; border-radius: var(--radius-sm);">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div>
+                                    <label style="display: block; font-size: 12px; color: var(--gray-dark); margin-bottom: 5px;">用户名称</label>
+                                    <div style="font-weight: 600; color: var(--text-color);">${user.name}</div>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 12px; color: var(--gray-dark); margin-bottom: 5px;">用户ID</label>
+                                    <div style="font-weight: 600; color: var(--text-color);">${userId}</div>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 12px; color: var(--gray-dark); margin-bottom: 5px;">注册时间</label>
+                                    <div style="font-weight: 600; color: var(--text-color);">${user.registerTime}</div>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 12px; color: var(--gray-dark); margin-bottom: 5px;">用户角色</label>
+                                    <div style="font-weight: 600; ${user.isAdmin ? 'color: #9b59b6;' : 'color: var(--text-color);'}">
+                                        ${user.isAdmin ? '🔒 管理员' : '👤 普通用户'}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 12px; color: var(--gray-dark); margin-bottom: 5px;">干体重</label>
+                                    <div style="font-weight: 600; color: var(--primary-color);">${user.dryWeight ? user.dryWeight + ' kg' : '未设置'}</div>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 12px; color: var(--gray-dark); margin-bottom: 5px;">透析天数</label>
+                                    <div style="font-weight: 600; color: var(--text-color);">${(user.dialysisDays || []).length} 天</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 25px;">
+                        <h3 style="font-size: 18px; color: var(--text-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                            <span>📊</span> 数据统计
+                        </h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: var(--radius); text-align: center;">
+                                <div style="font-size: 28px; font-weight: bold; margin-bottom: 5px;">${(user.dialysisRecords || []).length}</div>
+                                <div style="font-size: 12px; opacity: 0.9;">透析记录</div>
+                            </div>
+                            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: var(--radius); text-align: center;">
+                                <div style="font-size: 28px; font-weight: bold; margin-bottom: 5px;">${(user.waterRecords || []).length}</div>
+                                <div style="font-size: 12px; opacity: 0.9;">水分记录</div>
+                            </div>
+                            <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: var(--radius); text-align: center;">
+                                <div style="font-size: 28px; font-weight: bold; margin-bottom: 5px;">${(user.medicineRecords || []).length}</div>
+                                <div style="font-size: 12px; opacity: 0.9;">用药记录</div>
+                            </div>
+                            <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; padding: 20px; border-radius: var(--radius); text-align: center;">
+                                <div style="font-size: 28px; font-weight: bold; margin-bottom: 5px;">${(user.vitalsRecords || []).length}</div>
+                                <div style="font-size: 12px; opacity: 0.9;">生命体征</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 25px;">
+                        <h3 style="font-size: 18px; color: var(--text-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                            <span>📥</span> 下载记录
+                        </h3>
+                        <div style="background: var(--gray-light); padding: 20px; border-radius: var(--radius-sm);">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div>
+                                    <label style="display: block; font-size: 12px; color: var(--gray-dark); margin-bottom: 5px;">下载次数</label>
+                                    <div style="font-weight: 600; color: var(--primary-color); font-size: 24px;">${user.downloadCount || 0} <span style="font-size: 14px; color: var(--gray-dark); font-weight: normal;">次</span></div>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 12px; color: var(--gray-dark); margin-bottom: 5px;">最后下载时间</label>
+                                    <div style="font-weight: 600; color: var(--text-color);">${user.lastDownloadTime ? new Date(user.lastDownloadTime).toLocaleString('zh-CN') : '未下载'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 style="font-size: 18px; color: var(--text-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                            <span>💾</span> 完整数据
+                        </h3>
+                        <button onclick="document.getElementById('fullData_${userId}').style.display = document.getElementById('fullData_${userId}').style.display === 'none' ? 'block' : 'none'" style="padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px;">
+                            ${document.getElementById('fullData_' + userId) ? '隐藏' : '显示'} 完整数据JSON
+                        </button>
+                        <pre id="fullData_${userId}" style="display: none; background: var(--gray-light); padding: 15px; border-radius: var(--radius-sm); overflow-x: auto; font-size: 12px; margin-top: 15px;">${JSON.stringify(user, null, 2)}</pre>
+                    </div>
+                    
+                    <div style="margin-top: 30px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: var(--radius-sm);">
+                        <div style="display: flex; align-items: center; gap: 8px; color: #856404; font-size: 14px; font-weight: 600;">
+                            <span>🔒</span> 只读模式：此页面仅用于查看，不支持编辑患者信息
+                        </div>
+                    </div>
+                    
+                    <button onclick="this.closest('.modal').remove()" style="margin-top: 20px; width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 16px; font-weight: 600;">
+                        确定
+                    </button>
+                `;
+                
+                modalContent.appendChild(closeBtn);
+                modalContent.appendChild(title);
+                modalContent.appendChild(infoDiv);
+                modal.appendChild(modalContent);
+                
+                document.body.appendChild(modal);
+            }
+
+            // 删除用户
+            function deleteUser(userId, userName) {
+                if (!appData.isAdmin) {
+                    alert('❌ 您没有管理员权限！');
+                    return;
+                }
+
+                if (!confirm(`确定要删除用户 "${userName}" 吗？此操作不可恢复！`)) {
+                    return;
+                }
+
+                delete appData.users[userId];
+                saveDataToLocalStorage();
+                loadAdminPanelData(); // 刷新管理员面板
+                addOperationLog('删除用户', `管理员删除了用户: ${userName} (ID: ${userId})`);
+                alert(`✅ 用户 "${userName}" 已删除`);
+            }
+
+            // 导出所有用户数据
+            function exportAllUsersData() {
+                if (!appData.isAdmin) {
+                    alert('❌ 您没有管理员权限！');
+                    return;
+                }
+
+                try {
+                    const exportData = {
+                        data: appData,
+                        exportTime: new Date().toISOString(),
+                        version: '1.0',
+                        description: '所有用户数据备份'
+                    };
+                    
+                    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const dateStr = new Date().toLocaleDateString().replace(/\//g, '-');
+                    a.download = `所有用户数据备份_${dateStr}.json`;
+                    a.click();
+                    
+                    URL.revokeObjectURL(url);
+                    
+                    addOperationLog('导出数据', '管理员导出了所有用户数据');
+                    alert('✅ 所有用户数据已导出！');
+                } catch (e) {
+                    console.error('导出数据失败:', e);
+                    alert('❌ 导出失败：' + e.message);
+                }
+            }
+
+            // 清空所有用户数据
+            function clearAllUsersData() {
+                if (!appData.isAdmin) {
+                    alert('❌ 您没有管理员权限！');
+                    return;
+                }
+
+                if (!confirm('⚠️ 警告：这将删除所有用户的数据（包括管理员），此操作不可恢复！\n\n确定要继续吗？')) {
+                    return;
+                }
+
+                if (!confirm('⚠️ 再次确认：您真的要清空所有数据吗？')) {
+                    return;
+                }
+
+                // 保留admin用户
+                const adminUser = appData.users['admin'];
+                appData.users = {
+                    'admin': adminUser || {
+                        name: '系统管理员',
+                        password: 'admin123',
+                        registerTime: new Date().toLocaleString('zh-CN'),
+                        dialysisDays: [],
+                        dialysisTimes: {},
+                        waterRecords: [],
+                        dialysisRecords: [],
+                        medicineRecords: [],
+                        vitalsRecords: [],
+                        isAdmin: true
+                    }
+                };
+                
+                appData.currentUsername = 'admin';
+                appData.isAdmin = true;
+                
+                saveDataToLocalStorage();
+                location.reload();
+                
+                alert('✅ 所有用户数据已清空，仅保留管理员账户');
+            }
+
+            // 记录操作日志
+            function addOperationLog(action, details) {
+                if (!appData.operationLogs) {
+                    appData.operationLogs = [];
+                }
+                
+                const log = {
+                    id: Date.now(),
+                    timestamp: new Date().toISOString(),
+                    action: action,
+                    details: details,
+                    operator: appData.currentUsername
+                };
+                
+                appData.operationLogs.unshift(log); // 最新的日志在最前面
+                
+                // 只保留最近500条日志
+                if (appData.operationLogs.length > 500) {
+                    appData.operationLogs = appData.operationLogs.slice(0, 500);
+                }
+                
+                saveDataToLocalStorage();
+            }
+
+            // 加载操作日志
+            function loadOperationLogs() {
+                const logsContainer = document.getElementById('operationLogsList');
+                logsContainer.innerHTML = '';
+                
+                if (!appData.operationLogs || appData.operationLogs.length === 0) {
+                    logsContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--gray-dark);">暂无操作日志</div>';
+                    return;
+                }
+                
+                appData.operationLogs.forEach(log => {
+                    const logItem = document.createElement('div');
+                    logItem.style.cssText = `
+                        padding: 15px;
+                        border-left: 3px solid var(--primary-color);
+                        background: var(--gray-light);
+                        margin-bottom: 10px;
+                        border-radius: var(--radius-sm);
+                    `;
+                    
+                    const logTime = document.createElement('div');
+                    logTime.style.cssText = 'font-size: 12px; color: var(--gray-dark); margin-bottom: 5px;';
+                    logTime.textContent = new Date(log.timestamp).toLocaleString('zh-CN');
+                    
+                    const logAction = document.createElement('div');
+                    logAction.style.cssText = 'font-weight: 600; color: var(--text-color); margin-bottom: 5px;';
+                    logAction.textContent = `操作: ${log.action}`;
+                    
+                    const logDetails = document.createElement('div');
+                    logDetails.style.cssText = 'font-size: 13px; color: var(--gray-dark);';
+                    logDetails.textContent = `详情: ${log.details}`;
+                    
+                    const logOperator = document.createElement('div');
+                    logOperator.style.cssText = 'font-size: 12px; color: var(--gray-dark); margin-top: 5px;';
+                    logOperator.textContent = `操作人: ${log.operator}`;
+                    
+                    logItem.appendChild(logTime);
+                    logItem.appendChild(logAction);
+                    logItem.appendChild(logDetails);
+                    logItem.appendChild(logOperator);
+                    
+                    logsContainer.appendChild(logItem);
+                });
+            }
+
+            // 清空操作日志
+            function clearOperationLogs() {
+                if (!appData.isAdmin) {
+                    alert('❌ 您没有管理员权限！');
+                    return;
+                }
+                
+                if (!confirm('确定要清空所有操作日志吗？')) {
+                    return;
+                }
+                
+                appData.operationLogs = [];
+                saveDataToLocalStorage();
+                loadOperationLogs();
+                addOperationLog('清空日志', '管理员清空了所有操作日志');
+                alert('✅ 操作日志已清空');
+            }
+
+            // 修改管理员密码
+            function changeAdminPassword() {
+                if (!appData.isAdmin) {
+                    alert('❌ 您没有管理员权限！');
+                    return;
+                }
+                
+                const currentPassword = document.getElementById('currentAdminPassword').value;
+                const newPassword = document.getElementById('newAdminPassword').value;
+                const confirmPassword = document.getElementById('confirmAdminPassword').value;
+                
+                // 验证当前密码
+                const currentUser = appData.users[appData.currentUsername];
+                if (currentUser.password !== currentPassword) {
+                    alert('❌ 当前密码错误！');
+                    return;
+                }
+                
+                // 验证新密码
+                if (newPassword.length < 6) {
+                    alert('❌ 新密码长度至少为6位！');
+                    return;
+                }
+                
+                if (newPassword !== confirmPassword) {
+                    alert('❌ 两次输入的新密码不一致！');
+                    return;
+                }
+                
+                // 修改密码
+                currentUser.password = newPassword;
+                saveDataToLocalStorage();
+                
+                // 清空输入框
+                document.getElementById('currentAdminPassword').value = '';
+                document.getElementById('newAdminPassword').value = '';
+                document.getElementById('confirmAdminPassword').value = '';
+                
+                alert('✅ 密码修改成功！');
+                addOperationLog('修改密码', '管理员修改了登录密码');
+            }
+
+            // 加载系统信息
+            function loadSystemInfo() {
+                const currentUser = appData.users[appData.currentUsername];
+                document.getElementById('currentAdminName').textContent = currentUser ? currentUser.name : '--';
+                
+                // 计算系统运行时间（简化版，使用注册时间）
+                if (currentUser && currentUser.registerTime) {
+                    const registerDate = new Date(currentUser.registerTime);
+                    const now = new Date();
+                    const daysSinceRegister = Math.floor((now - registerDate) / (1000 * 60 * 60 * 24));
+                    document.getElementById('systemRunTime').textContent = `${daysSinceRegister} 天`;
+                }
+                
+                // 计算数据存储大小（估算）
+                const dataSize = JSON.stringify(appData).length;
+                const sizeInKB = (dataSize / 1024).toFixed(2);
+                document.getElementById('dataStorageSize').textContent = `${sizeInKB} KB`;
+            }
+
+            // 加载用户活跃度图表
+            function loadUserActivityChart() {
+                const canvas = document.getElementById('userActivityChart');
+                if (!canvas) return;
+                
+                // 收集数据：每个用户的记录数量
+                const userData = [];
+                Object.keys(appData.users).forEach(userId => {
+                    const user = appData.users[userId];
+                    const totalRecords = (user.dialysisRecords || []).length + 
+                                       (user.waterRecords || []).length + 
+                                       (user.medicineRecords || []).length;
+                    userData.push({
+                        name: user.name,
+                        records: totalRecords
+                    });
+                });
+                
+                // 按记录数量排序，只取前10个
+                userData.sort((a, b) => b.records - a.records);
+                const topUsers = userData.slice(0, 10);
+                
+                // 准备图表数据
+                const labels = topUsers.map(u => u.name);
+                const data = topUsers.map(u => u.records);
+                
+                // 销毁旧图表（如果存在）
+                if (window.userActivityChartInstance) {
+                    window.userActivityChartInstance.destroy();
+                }
+                
+                // 创建新图表
+                window.userActivityChartInstance = new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '总记录数',
+                            data: data,
+                            backgroundColor: 'rgba(74, 144, 226, 0.6)',
+                            borderColor: 'rgba(74, 144, 226, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            title: {
+                                display: true,
+                                text: '用户活跃度排名（前10名）'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '记录数量'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '用户名'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 导出用户统计数据
+            function exportUserStatistics() {
+                if (!appData.isAdmin) {
+                    alert('❌ 您没有管理员权限！');
+                    return;
+                }
+
+                try {
+                    // 收集统计数据
+                    const stats = {
+                        exportTime: new Date().toISOString(),
+                        totalUsers: Object.keys(appData.users).length,
+                        users: []
+                    };
+                    
+                    Object.keys(appData.users).forEach(userId => {
+                        const user = appData.users[userId];
+                        const userStats = {
+                            userId: userId,
+                            name: user.name,
+                            registerTime: user.registerTime,
+                            isAdmin: user.isAdmin || false,
+                            dialysisRecords: (user.dialysisRecords || []).length,
+                            waterRecords: (user.waterRecords || []).length,
+                            medicineRecords: (user.medicineRecords || []).length,
+                            totalRecords: (user.dialysisRecords || []).length + 
+                                         (user.waterRecords || []).length + 
+                                         (user.medicineRecords || []).length
+                        };
+                        stats.users.push(userStats);
+                    });
+                    
+                    // 按记录数排序
+                    stats.users.sort((a, b) => b.totalRecords - a.totalRecords);
+                    
+                    const blob = new Blob([JSON.stringify(stats, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const dateStr = new Date().toLocaleDateString().replace(/\//g, '-');
+                    a.download = `用户统计数据_${dateStr}.json`;
+                    a.click();
+                    
+                    URL.revokeObjectURL(url);
+                    
+                    alert('✅ 用户统计数据已导出！');
+                    addOperationLog('导出统计', '管理员导出了用户统计数据');
+                } catch (e) {
+                    console.error('导出统计数据失败:', e);
+                    alert('❌ 导出失败：' + e.message);
+                }
+            }
             
             // 初始化应用
             function initApp() {
                 loadDataFromLocalStorage();
+                
+                // 检查管理员权限并显示/隐藏管理员选项卡
+                checkAdminPermission();
 
                 // 更新首页显示
                 const user = getCurrentUser();
@@ -5008,25 +6168,28 @@
                 let validPassword = false;
                 
                 // 检查默认admin账户
-                if (username === 'admin' && password === '123456') {
+                if (username === 'admin' && password === 'admin123') {
                     userFound = true;
                     validPassword = true;
                     // 设置当前用户
                     if (!appData.users['admin']) {
                         appData.users['admin'] = {
-                            name: '管理员',
-                            password: '123456',
+                            name: '系统管理员',
+                            password: 'admin123',
                             registerTime: new Date().toLocaleString('zh-CN'),
                             dialysisDays: [],
                             dialysisTimes: {},
                             waterRecords: [],
                             dialysisRecords: [],
                             medicineRecords: [],
-                            vitalsRecords: []
+                            vitalsRecords: [],
+                            isAdmin: true, // 标记为管理员
+                            downloadCount: 0, // 下载次数
+                            lastDownloadTime: null // 最后下载时间
                         };
-                        saveDataToLocalStorage();
                     }
                     appData.currentUsername = 'admin';
+                    appData.isAdmin = true; // 设置管理员身份
                     saveDataToLocalStorage();
                 } else {
                     // 检查其他用户
@@ -5037,6 +6200,7 @@
                             if (user.password === password) {
                                 validPassword = true;
                                 appData.currentUsername = userId;
+                                appData.isAdmin = user.isAdmin || false; // 设置管理员身份
                                 saveDataToLocalStorage();
                             }
                         }
@@ -5063,15 +6227,6 @@
                     showMainContainer();
                     initNavigation(); // 初始化导航事件
                     initApp();
-                    
-                    // 检查是否首次登录（没有设置干体重等个人信息）
-                    const currentUser = getCurrentUser();
-                    if (!currentUser.dryWeight || !currentUser.name || currentUser.name === '管理员' || currentUser.name === '用户') {
-                        setTimeout(() => {
-                            openProfileModal();
-                            alert('💡 首次使用，请先设置您的个人信息（干体重等）');
-                        }, 500);
-                    }
                 } else if (userFound) {
                     // 密码错误
                     errorDiv.textContent = '密码错误，请重试';
@@ -5088,9 +6243,13 @@
                         waterRecords: [],
                         dialysisRecords: [],
                         medicineRecords: [],
-                        vitalsRecords: []
+                        vitalsRecords: [],
+                        isAdmin: false, // 默认为普通用户
+                        downloadCount: 0, // 下载次数
+                        lastDownloadTime: null // 最后下载时间
                     };
                     appData.currentUsername = newUserId;
+                    appData.isAdmin = false; // 新用户不是管理员
                     saveDataToLocalStorage();
                     
                     // 自动登录
@@ -5120,6 +6279,33 @@
                 const userInfoSpan = document.getElementById('headerUserInfo');
                 if (userInfoSpan && user) {
                     userInfoSpan.textContent = `当前用户：${user.name}`;
+                }
+                
+                // 管理员登录后只显示管理员界面
+                if (appData.isAdmin) {
+                    // 隐藏所有普通用户页面导航项
+                    const navItems = document.querySelectorAll('.nav-item:not(.admin-only)');
+                    navItems.forEach(item => item.style.display = 'none');
+                    
+                    // 显示管理员导航项
+                    const adminNav = document.querySelector('.admin-only');
+                    if (adminNav) {
+                        adminNav.style.display = 'block';
+                        // 激活管理员导航项
+                        adminNav.classList.add('active');
+                    }
+                    
+                    // 隐藏所有页面，显示管理员页面
+                    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+                    const adminPage = document.getElementById('admin-panelPage');
+                    if (adminPage) {
+                        adminPage.classList.add('active');
+                    }
+                    
+                    // 直接加载管理员面板数据
+                    setTimeout(() => {
+                        loadAdminPanelData();
+                    }, 200);
                 }
             }
             
